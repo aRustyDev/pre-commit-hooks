@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ -d "/etc/nixos" ]; then
   mkdir -p "$GIT_DIR/nixos/WIP"
