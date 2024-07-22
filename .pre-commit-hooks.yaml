@@ -1,0 +1,11 @@
+-   id: backup-nixos-config
+    name: Backup-NixOS-Configs
+    description: This hook copies all files at /etc/nixos to $GIT_DIR/nixos/backup.
+    entry: hooks/backup-nixos.sh
+    language: script
+-   id: op-ggshield-img
+    name: 1PW-GGShield
+    description: This hook downloads and runs a docker container that calls `op run -- ggshield secret scan pre-commit`.
+    entry: docker.com/op-ggshield:latest
+    language: docker_image
+    types: [text]
