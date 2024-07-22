@@ -17,6 +17,7 @@ repos:
     - id: check-yaml
     - id: check-merge-conflict
     - id: check-executables-have-shebangs
+    - id: check-shebang-scripts-are-executable
 
     # Cross platform
     - id: check-case-conflict
