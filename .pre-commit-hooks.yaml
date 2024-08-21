@@ -155,18 +155,17 @@
   files: ^\.github/workflows/
   entry: hooks/ci/github.sh
 - id: pluralith
-  name: "UNTESTED: pluralith"
+  name: "Generating Terraform Diagram"
   description: Generates a graph of the currently described resources. Takes (optional) API_KEY as argument.
   entry: hooks/terraform/pluralith.sh
   language: script
   files: \.tf$
   types: [hcl, yaml]
-  args: []
+  # args: []
   require_serial: false
   additional_dependencies: []
   minimum_pre_commit_version: '0'
   pass_filenames: false
-  always_run: true
 # - id: gitlint
 #   name: "UNTESTED: gitlint"
 #   description: Checks your git commit messages for style.
