@@ -20,3 +20,8 @@
 14. `.go`
 15. `.py`
 16. `.nix` : syntax validation, variable name linting, file name linting, run tests, sbom signing
+17. `in-toto/witness` : generate attestations
+    - PR(in-toto/witness): Modify releases to be `go get/install` compatible
+    - PR(in-toto/witness): Make config file more intuitive
+    - PR(in-toto/witness): Add additional Examples
+    - PR(in-toto/witness): Add `.pre-commit-hooks.yaml` & `/hooks/witness.sh`
