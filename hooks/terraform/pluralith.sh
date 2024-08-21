@@ -47,6 +47,7 @@ fi
 # TODO: Make version bumpable
 # Check if the config file exists; create it if it doesn't
 if ! [ -f ".pluralith.yml" ] && ! [ -f ".pluralith.yaml" ]; then
+  echo "No .pluralith.yaml found; creating one now, please fill in the required fields."
   cat << EOF > ".pluralith.yaml"
 #  _
 # |_)|    _ _ |._|_|_
@@ -82,6 +83,7 @@ diagram: # See https://docs.pluralith.com/docs/more/diagram-customization for al
     - resourceType
     - resourceType.resourceName
 EOF
+  exit 1
 fi
 
 # Run pluralith
