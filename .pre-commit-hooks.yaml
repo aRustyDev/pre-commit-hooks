@@ -156,7 +156,7 @@
   entry: hooks/ci/github.sh
 - id: pluralith
   name: "Generating Terraform Diagram"
-  description: Generates a graph of the currently described resources. Takes (optional) API_KEY as argument.
+  description: Generates a graph of the currently described resources. Takes (optional) 'apikey' & (optional) 'binpath' as arguments.
   entry: hooks/terraform/pluralith.sh
   language: script
   files: \.tf$
