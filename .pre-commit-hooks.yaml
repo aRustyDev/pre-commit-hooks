@@ -1,11 +1,181 @@
--   id: backup-nixos-config
-    name: Backup-NixOS-Configs
-    description: This hook copies all files at /etc/nixos to $GIT_DIR/nixos/backup.
-    entry: hooks/backup-nixos.sh
-    language: script
--   id: op-ggshield-img
-    name: 1PW-GGShield
-    description: This hook downloads and runs a docker container that calls `op run -- ggshield secret scan pre-commit`.
-    entry: docker.com/op-ggshield:latest
-    language: docker_image
-    types: [text]
+- id: nixos-backup-config
+  name: Backup-NixOS-Configs
+  description: This hook copies all files at /etc/nixos to $GIT_DIR/nixos/backup.
+  entry: hooks/backup-nixos.sh
+  language: script
+- id: op-ggshield-img
+  name: 1PW-GGShield
+  description: This hook downloads and runs a docker container that calls `op run -- ggshield secret scan pre-commit`.
+  entry: docker.com/op-ggshield:latest
+  language: docker_image
+  types: [text]
+- id: nixos-update-config
+  name: Update-NixOS-Configs
+  description: "NOT IMPLEMENTED: This hook copies all files at $GIT_DIR/nixos/WIP to /etc/nixos."
+  entry: hooks/updated-vm.sh
+  language: script
+  stages:
+    - post-checkout
+    - post-merge
+- id: bear-witness
+  name: Creating Attestations
+  description: "NOT IMPLEMENTED: This hook runs in-toto `witness` to attest a step of the SWSC."
+  entry: hooks/witness.sh
+  language: script
+  stages: [pre-commit, post-commit, post-checkout, pre-push]
+- id: csslint
+  name: "UNTESTED: csslint"
+  entry: hooks/web/css/csslint.sh
+  language: script
+  files: \.css$
+  args: []
+  minimum_pre_commit_version: 0.7.0
+- id: eslint
+  name: "UNTESTED: eslint"
+  description: ''
+  entry: hooks/web/js/eslint.sh
+  language: script
+  'types': [javascript]
+  args: []
+  require_serial: false
+  minimum_pre_commit_version: '0'
+- id: fixmyjs
+  name: "UNTESTED: fixmyjs"
+  description: ''
+  entry: hooks/web/js/fixmyjs.sh
+  language: script
+  'types': [javascript]
+  args: []
+  require_serial: false
+  minimum_pre_commit_version: '0'
+- id: jshint
+  name: "UNTESTED: jshint"
+  description: ''
+  entry: hooks/web/js/jshint.sh
+  language: script
+  # language: node
+  'types': [javascript]
+  args: []
+  require_serial: false
+  minimum_pre_commit_version: '0'
+- id: scss-lint
+  name: scss_lint
+  description: ''
+  entry: hooks/web/scss/scss-lint.sh
+  language: script
+  # language: ruby
+  'types': [scss]
+  args: []
+  require_serial: false
+  additional_dependencies: []
+  minimum_pre_commit_version: '0'
+- id: yamlfmt
+  name: "UNTESTED: yamlfmt"
+  description: This hook uses github.com/google/yamlfmt to format yaml files. Requires golang >1.18 to be installed.
+  entry: hooks/configs/yamlfmt.sh
+  language: script
+  types: [yaml]
+  args: []
+  require_serial: false
+  additional_dependencies: []
+  minimum_pre_commit_version: '0'
+- id: commitlint
+  name: "UNTESTED: commitlint"
+  description: Commitlint hook
+  entry: hooks/commits/commitlint.sh
+  language: script
+  require_serial: false
+  additional_dependencies: []
+  minimum_pre_commit_version: '0'
+  pass_filenames: false
+  always_run: true
+- id: gitlint
+  name: "UNTESTED: gitlint"
+  description: Checks your git commit messages for style.
+  entry: hooks/commits/gitlint.sh
+  language: script
+  additional_dependencies: ["./gitlint-core[trusted-deps]"]
+  args: [--staged, --msg-filename]
+  stages: [commit-msg]
+- id: gitlint-ci
+  name: "UNTESTED: gitlint-ci"
+  language: script
+  additional_dependencies: ["./gitlint-core[trusted-deps]"]
+  entry: hooks/commits/gitlint.sh
+  always_run: true
+  pass_filenames: false
+  stages: [manual]
+- id: commitizen
+  name: "UNTESTED: commitizen check"
+  description: >
+    Check whether the current commit message follows committing rules. Allow
+    empty commit messages by default, because they typically indicate to Git
+    that the commit should be aborted.
+  entry: cz check
+  args: [--allow-abort, --commit-msg-file]
+  stages: [commit-msg]
+  language: script
+  minimum_pre_commit_version: "1.4.3"
+- id: commitizen-branch
+  name: "UNTESTED: commitizen check branch"
+  description: >
+    Check all commit messages that are already on the current branch but not the
+    default branch on the origin repository. Useful for checking messages after
+    the fact (e.g., pre-push or in CI) without an expensive check of the entire
+    repository history.
+  entry: cz check
+  args: [--rev-range, origin/HEAD..HEAD]
+  always_run: true
+  pass_filenames: false
+  language: script
+  minimum_pre_commit_version: "1.4.3"
+- id: actionlint
+  # name: Lint GitHub Actions workflow files
+  name: "UNTESTED: actionlint"
+  description: Runs actionlint to lint GitHub Actions workflow files
+  language: golang
+  types: ["yaml"]
+  files: ^\.github/workflows/
+  entry: actionlint
+  minimum_pre_commit_version: 3.0.0
+- id: actionlint-docker
+  # name: Lint GitHub Actions workflow files
+  name: "UNTESTED: actionlint-docker"
+  description: Runs actionlint Docker image to lint GitHub Actions workflow files
+  language: docker_image
+  types: ["yaml"]
+  files: ^\.github/workflows/
+  entry: docker.io/rhysd/actionlint:1.7.1
+- id: actionlint-system
+  # name: Lint GitHub Actions workflow files
+  name: "UNTESTED: actionlint-system"
+  description: Runs system-installed actionlint to lint GitHub Actions workflow files
+  language: script
+  types: ["yaml"]
+  files: ^\.github/workflows/
+  entry: hooks/ci/github.sh
+- id: pluralith
+  name: "UNTESTED: pluralith"
+  description: Generates a graph of the currently described resources. Takes (optional) API_KEY as argument.
+  entry: hooks/terraform/pluralith.sh
+  language: script
+  files: \.tf$
+  types: [hcl, yaml]
+  args: []
+  require_serial: false
+  additional_dependencies: []
+  minimum_pre_commit_version: '0'
+  pass_filenames: false
+  always_run: true
+# - id: gitlint
+#   name: "UNTESTED: gitlint"
+#   description: Checks your git commit messages for style.
+#   entry: hooks/commits/gitlint.sh
+#   language: script
+#   types: [file, yaml]
+#   args: []
+#   require_serial: false
+#   additional_dependencies: []
+#   minimum_pre_commit_version: '0'
+#   pass_filenames: false
+#   always_run: true
