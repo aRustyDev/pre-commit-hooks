@@ -1,36 +1,53 @@
-#!/usr/env/bin bash
+#!/usr/bin/env bash
 # shellcheck shell=bash
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
 get_latest_release() {
+  # Set the path to the pluralith binary
+  if [ -z "$1" ]; then
+    PLURAL_PATH="/usr/local/bin/pluralith"
+  else
+    PLURAL_PATH="$1"
+  fi
+
   # 1. Use the GitHub API to get the latest release
   # 2. Use grep to find the line with the right download URL
   # 3. Use cut to get the URL
   # 4. Use tr to remove quotes
-  # 5. Use wget to download the file
-  # 6. Use mv to simultaneously place pluralith in the PATH & rename it
-  # 7. Use chmod to make the file executable
-  curl -s https://api.github.com/repos/Pluralith/pluralith-cli/releases/latest |
+  URL=$(curl -s https://api.github.com/repos/Pluralith/pluralith-cli/releases/latest |
     grep "browser_download_url.*pluralith_cli_${OS}_amd64" |
     cut -d : -f 2,3 |
-    tr -d \" |
-    wget -qi - &&
-    mv pluralith_cli_"$OS"_amd64 /usr/local/bin/pluralith &&
-    chmod +x /usr/local/bin/pluralith
+    tr -d \")
+  # 5. Use cut to get the version
+  VERSION="$(echo "$URL" | cut -d / -f 8)"
+  # 6. Use wget to download the file
+  wget -qi "$URL" -O pluralith
+  # 7. Use mv to simultaneously place pluralith in the PATH & rename it
+  mv pluralith "$PLURAL_PATH"
+  # 8. Use chmod to make the file executable
+  chmod +x "$PLURAL_PATH"
+  # 9. Echo the version as the return value
+  echo "$VERSION" | grep -o "[0-9\.]*"
+}
+
+get_current_version() {
+  pluralith version | grep "CLI Version" | cut -d " " -f 4
 }
 
 # If pluralith is not installed, get the latest release || update
-if ! command -v pluralith 2> /dev/null; then
-  get_latest_release # Uses above function
-else
-  pluralith update
+if ! command -v pluralith &> /dev/null; then
+  get_latest_release > /dev/null # since it returns the version
+elif [ "$(get_current_version)" != "$(get_latest_release)" ]; then
+  PLURAL_PATH="$(which pluralith)"
+  rm "$PLURAL_PATH"
+  get_latest_release "$PLURAL_PATH" > /dev/null # since it returns the version
 fi
 
 # TODO: Make version bumpable
 # Check if the config file exists; create it if it doesn't
 if ! [ -f ".pluralith.yml" ] && ! [ -f ".pluralith.yaml" ]; then
-  cat .pluralith.toml << EOF
+  cat << EOF > ".pluralith.yaml"
 #  _
 # |_)|    _ _ |._|_|_
 # |  ||_|| (_||| | | |
@@ -68,13 +85,12 @@ EOF
 fi
 
 # Run pluralith
-if [ -z "$1" ]; then
+if [ "$#" -eq 0 ]; then
+  # This will only load the graph locally
+  pluralith graph --local-only
+else
   # TODO: Validate the API key
   # This will load the graph to the Pluralith cloud
   pluralith login --api-key "$1"
   pluralith graph
-else
-  # This will only load the graph locally
-  pluralith graph --local-only
 fi
-# Run eslint
