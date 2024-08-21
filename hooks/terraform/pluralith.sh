@@ -1,7 +1,37 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+# TODO: Add config file modification capability
+
+# Handle named flags
+# -apikey: API key for Pluralith Cloud
+# -binpath: Path to the Pluralith binary
+OPTLIST=$(getopt -n "$0" -a -l "apikey:,binpath:" -- -- "$@")
+eval set -- "$OPTLIST"
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --apikey)
+      API_KEY="$2"
+      shift
+      ;;
+    --binpath)
+      PLURAL_PATH="$2"
+      shift
+      ;;
+    --) shift ;;
+  esac
+  shift
+done
+
+# Set the OS and ARCH variables
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH=""
+case $(uname -m) in
+  i386) ARCH="386" ;;
+  i686) ARCH="386" ;;
+  x86_64) ARCH="amd64" ;;
+  arm) dpkg --print-architecture | grep -q "arm64" && ARCH="arm64" || ARCH="arm" ;;
+esac
 
 get_latest_release() {
   # Set the path to the pluralith binary
@@ -16,7 +46,7 @@ get_latest_release() {
   # 3. Use cut to get the URL
   # 4. Use tr to remove quotes
   URL=$(curl -s https://api.github.com/repos/Pluralith/pluralith-cli/releases/latest |
-    grep "browser_download_url.*pluralith_cli_${OS}_amd64" |
+    grep "browser_download_url.*pluralith_cli_${OS}_${ARCH}" |
     cut -d : -f 2,3 |
     tr -d \")
   # 5. Use cut to get the version
@@ -37,8 +67,8 @@ get_current_version() {
 
 # If pluralith is not installed, get the latest release || update
 if ! command -v pluralith &> /dev/null; then
-  get_latest_release > /dev/null # since it returns the version
-elif [ "$(get_current_version)" != "$(get_latest_release)" ]; then
+  get_latest_release "$PLURAL_PATH" > /dev/null # since it returns the version
+elif [ "$(get_current_version)" != "$(get_latest_release "$PLURAL_PATH")" ]; then
   PLURAL_PATH="$(which pluralith)"
   rm "$PLURAL_PATH"
   get_latest_release "$PLURAL_PATH" > /dev/null # since it returns the version
@@ -93,6 +123,6 @@ if [ "$#" -eq 0 ]; then
 else
   # TODO: Validate the API key
   # This will load the graph to the Pluralith cloud
-  pluralith login --api-key "$1"
+  pluralith login --api-key "$API_KEY" || (echo "Failed to login to Pluralith Cloud" && exit 1)
   pluralith graph
 fi
