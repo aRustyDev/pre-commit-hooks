@@ -33,6 +33,7 @@ case $(uname -m) in
   arm) dpkg --print-architecture | grep -q "arm64" && ARCH="arm64" || ARCH="arm" ;;
 esac
 
+# Get the latest release of Pluralith from GitHub
 get_latest_release() {
   # Set the path to the pluralith binary
   if [ -z "$1" ]; then
@@ -61,6 +62,7 @@ get_latest_release() {
   echo "$VERSION" | grep -o "[0-9\.]*"
 }
 
+# Get the current version of Pluralith via the CLI
 get_current_version() {
   pluralith version | grep "CLI Version" | cut -d " " -f 4
 }
