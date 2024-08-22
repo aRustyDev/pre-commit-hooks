@@ -166,15 +166,13 @@
   additional_dependencies: []
   minimum_pre_commit_version: '0'
   pass_filenames: false
-# - id: gitlint
-#   name: "UNTESTED: gitlint"
-#   description: Checks your git commit messages for style.
-#   entry: hooks/commits/gitlint.sh
-#   language: script
-#   types: [file, yaml]
-#   args: []
-#   require_serial: false
-#   additional_dependencies: []
-#   minimum_pre_commit_version: '0'
-#   pass_filenames: false
-#   always_run: true
+- id: tfupdate
+  name: "UNTESTED: tfupdate"
+  description: Updates version constraints for Terraform, TF Providers, & TF Modules.
+  entry: hooks/terraform/tfupdate.sh
+  language: script
+  types: [file, yaml]
+  args: []
+  require_serial: false
+  # additional_dependencies: []
+  minimum_pre_commit_version: '0'
