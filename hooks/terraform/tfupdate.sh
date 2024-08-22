@@ -52,7 +52,7 @@ elif [ -n "$MODULE" ] && [ -n "$1" ]; then
   tfupdate module -r "$MODULE" "$1"
 elif [ -n "$PROVIDER" ]; then
   # updates terraform.required_providers.aws
-  tfupdate provider "$PROVIDER" -r "$1"
+  tfupdate provider -r "$PROVIDER" "$1"
   git add "./*provider.tf"
 fi
 
