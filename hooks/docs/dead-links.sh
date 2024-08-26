@@ -15,6 +15,14 @@ done
 
 PASS=true
 
+is_url() {
+  if [[ "$1" =~ ^https?:// ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Loop through the files
 for file in $1; do
   # Check if the file exists
@@ -27,10 +35,16 @@ for file in $1; do
       case "${#components[@]}" in
         # MEANS: No heading in the link
         1)
-          # Check if the file the link points to exists
-          if ! [ -f "${components[0]}" ]; then
+          # IF !URL && !FILE
+          if ! [ "$(is_url "${components[0]}")" == 1 ] && ! [ -f "${components[0]}" ]; then
             echo "$file: Link broken (File not found): ${components[0]}"
             PASS=false
+          elif [ "$(is_url "${components[0]}")" == 1 ]; then
+            # Check if the link is reachable
+            if ! curl -s --head "${components[0]}" | head -n 1 | grep "200 OK" > /dev/null; then
+              echo "$file: Link broken (URL not reachable): ${components[0]}"
+              PASS=false
+            fi
           fi
           ;;
         # MEANS: The line contains a link w/ heading
