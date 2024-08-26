@@ -166,13 +166,38 @@
   additional_dependencies: []
   minimum_pre_commit_version: '0'
   pass_filenames: false
+# - id: tfupdate
+#   name: "UNTESTED: tfupdate"
+#   description: Updates version constraints for Terraform, TF Providers, & TF Modules.
+#   entry: hooks/terraform/tfupdate.sh
+#   language: script
+#   types: [file, yaml]
+#   args: []
+#   require_serial: false
+#   # additional_dependencies: []
+#   minimum_pre_commit_version: '0'
 - id: tfupdate
-  name: "UNTESTED: tfupdate"
+  name: "UNTESTED: tfupdate (providers)"
   description: Updates version constraints for Terraform, TF Providers, & TF Modules.
   entry: hooks/terraform/tfupdate.sh
   language: script
-  types: [file, yaml]
-  args: []
+  files: \.tf$
+  args:
+    - --provider=aws
+  always_run: true
+  require_serial: false
+  # additional_dependencies: []
+  minimum_pre_commit_version: '0'
+- id: dead-links
+  name: "UNTESTED: Check Markdown Links"
+  description: Checks markdown files for dead relative links.
+  entry: hooks/docs/dead-links.sh
+  language: script
+  files: \.md$
+  types:
+    - markdown
+  always_run: true
+  pass_filenames: true
   require_serial: false
   # additional_dependencies: []
   minimum_pre_commit_version: '0'
