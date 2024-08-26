@@ -189,7 +189,7 @@
   # additional_dependencies: []
   minimum_pre_commit_version: '0'
 - id: dead-links
-  name: "UNTESTED: Check Markdown Links"
+  name: "Check Markdown Links"
   description: Checks markdown files for dead relative links.
   entry: hooks/docs/dead-links.sh
   language: script
