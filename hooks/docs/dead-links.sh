@@ -13,6 +13,8 @@ for cmd in curl rg; do
   fi
 done
 
+PASS=true
+
 # Loop through the files
 for file in $1; do
   # Check if the file exists
@@ -28,7 +30,7 @@ for file in $1; do
           # Check if the file the link points to exists
           if ! [ -f "${components[0]}" ]; then
             echo "$file: Link broken (File not found): ${components[0]}"
-            exit 1
+            PASS=false
           fi
           ;;
         # MEANS: The line contains a link w/ heading
@@ -36,7 +38,7 @@ for file in $1; do
           # Check if the file the link points to exists
           if ! [ -f "${components[0]}" ]; then
             echo "$file: Link broken (File not found): ${components[0]}"
-            exit 1
+            PASS=false
           else
             # Check if the heading exists in the file
             SEARCH=$("^#+ $(echo "${components[1]}" | tr '-' ' ')")
@@ -44,7 +46,7 @@ for file in $1; do
               # MEANS: The heading does not exist
               0)
                 echo "$file: Link broken (Heading not found): '${components[1]}'"
-                exit 1
+                PASS=false
                 ;;
               # MEANS: The heading exists
               1)
@@ -53,7 +55,7 @@ for file in $1; do
               # MEANS: More than one heading found
               *)
                 echo "$file: More than one heading found: # ${components[1]}"
-                exit 1
+                PASS=false
                 ;;
             esac
           fi
@@ -69,6 +71,10 @@ for file in $1; do
     done
   else
     echo "File not found: $file"
-    exit 1
+    PASS=false
   fi
 done
+
+if [ "$PASS" = false ]; then
+  exit 1
+fi
