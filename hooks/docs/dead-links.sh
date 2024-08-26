@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # FAIL FAST
-if [ -z "$1" ]; then
+if [ $# -le 0 ]; then
   echo "Usage: $0 <file>"
   exit 1
 fi
