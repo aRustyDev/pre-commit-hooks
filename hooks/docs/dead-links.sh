@@ -17,9 +17,9 @@ PASS=true
 
 is_url() {
   if [[ "$1" =~ ^https?:// ]]; then
-    return 0
-  else
     return 1
+  else
+    return 0
   fi
 }
 
@@ -36,10 +36,10 @@ for file in $1; do
         # MEANS: No heading in the link
         1)
           # IF !URL && !FILE
-          if ! [ "$(is_url "${components[0]}")" == 1 ] && ! [ -f "${components[0]}" ]; then
+          if ! is_url "${components[0]}" && ! [ -f "${components[0]}" ]; then
             echo "$file: Link broken (File not found): ${components[0]}"
             PASS=false
-          elif [ "$(is_url "${components[0]}")" == 1 ]; then
+          elif is_url "${components[0]}"; then
             # Check if the link is reachable
             if ! curl -s --head "${components[0]}" | head -n 1 | grep "200 OK" > /dev/null; then
               echo "$file: Link broken (URL not reachable): ${components[0]}"
