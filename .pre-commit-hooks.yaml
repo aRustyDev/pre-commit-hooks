@@ -196,4 +196,3 @@
   files: \.md$
   types:
     - markdown
-  verbose: true
