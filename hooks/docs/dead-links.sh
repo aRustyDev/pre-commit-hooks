@@ -77,12 +77,14 @@ for file in "$@"; do
             # Check if the link is reachable
             if ! curl -s --head "${components[0]//\\/}" | head -n 1 | rg -cq '200'; then
               echo "$file: Link broken (URL not reachable): ${components[0]}"
+              printf "\t| Target URL: %s\n" "${components[0]}"
               PASS=false
             fi
 
           # Verify the file the link points to exists
           elif ! [ -f "$PATH_TO_LINK" ]; then
-            echo "$file: Link broken 1(File not found): ${components[0]}"
+            echo "$file: Link broken (File not found)"
+            printf "\t| Link Path: %s\n" "$PATH_TO_LINK"
             PASS=false
           fi
           ;;
@@ -95,13 +97,15 @@ for file in "$@"; do
 
             # Check if the link is reachable
             if ! curl -s --head "${components[0]//\\/}" | head -n 1 | rg -cq '200'; then
-              echo "$file: Link broken (URL not reachable): ${components[0]}"
+              echo "$file: Link broken (URL not reachable)"
+              printf "\t| Target URL: %s\n" "${components[0]}"
               PASS=false
             fi
 
           # Verify the file the link points to exists
           elif ! [ -f "$PATH_TO_LINK" ]; then
-            echo "$file: Link broken (File not found): $PATH_TO_LINK"
+            echo "$file: Link broken (File not found)"
+            printf "\t| Link Path: %s\n" "$PATH_TO_LINK"
             PASS=false
 
           # If Not a URL && File exists -> Check if the heading exists
@@ -115,6 +119,7 @@ for file in "$@"; do
               # MEANS: The heading does not exist
               0)
                 echo "$file: Link broken (Heading not found): '${components[1]}'"
+                printf "\t| Link Path: %s\n" "$PATH_TO_LINK"
                 PASS=false
                 ;;
 
