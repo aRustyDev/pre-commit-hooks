@@ -36,6 +36,7 @@
     description: Run `cargo rustc` following the cargo.toml file
     entry: cargo rustc
     language: system
+    always_run: true
     args: []
     types: [rust]
     pass_filenames: false
@@ -44,6 +45,7 @@
     description: Run `cargo doc` to build rust documentation
     entry: cargo doc
     language: system
+    always_run: true
     args: []
     types: [rust]
     pass_filenames: false
