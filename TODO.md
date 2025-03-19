@@ -25,3 +25,7 @@
     - PR(in-toto/witness): Make config file more intuitive
     - PR(in-toto/witness): Add additional Examples
     - PR(in-toto/witness): Add `.pre-commit-hooks.yaml` & `/hooks/witness.sh`
+
+## `cargo` hooks
+
+- sort `mod.rs` files
