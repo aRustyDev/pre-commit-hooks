@@ -196,3 +196,70 @@
   files: \.md$
   types:
     - markdown
+- id: backup-nixos-config
+  name: Backup-NixOS-Configs
+  description: This hook copies all files at /etc/nixos to $GIT_DIR/nixos/backup.
+  entry: hooks/backup-nixos.sh
+  language: script
+- id: op-ggshield-img
+  name: 1PW-GGShield
+  description: This hook downloads and runs a docker container that calls `op run -- ggshield secret scan pre-commit`.
+  entry: docker.com/op-ggshield:latest
+  language: docker_image
+  types: [text]
+- id: fmt
+  name: fmt
+  description: Format files with cargo fmt.
+  entry: cargo fmt
+  language: system
+  types: [rust]
+  args: ["--"]
+- id: cargo-check
+  name: cargo check
+  description: Check the package for errors.
+  entry: cargo check
+  language: system
+  types: [rust]
+  pass_filenames: false
+- id: clippy
+  name: clippy
+  description: Lint rust sources
+  entry: cargo clippy
+  language: system
+  args: ["--", "-D", "warnings"]
+  types: [rust]
+  pass_filenames: false
+- id: rustc
+  name: rustc
+  description: Run `cargo rustc` following the cargo.toml file
+  entry: cargo rustc
+  language: system
+  always_run: true
+  args: []
+  types: [rust]
+  pass_filenames: false
+- id: build-docs
+  name: build-docs
+  description: Run `cargo doc` to build rust documentation
+  entry: cargo doc
+  language: system
+  always_run: true
+  args: []
+  types: [rust]
+  pass_filenames: false
+- id: generate-report
+  name: generate-report
+  description: Run `cargo report future-incompat` to check for future incompatibilities
+  entry: cargo report future-incompat
+  language: system
+  args: []
+  types: [rust]
+  pass_filenames: false
+- id: cargo-bench
+  name: cargo-bench
+  description: Run `cargo bench` to Compile and execute benchmarks.
+  entry: cargo bench
+  language: system
+  args: []
+  types: [rust]
+  pass_filenames: false
