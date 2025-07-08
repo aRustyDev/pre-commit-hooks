@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-shell:
+    name: Lint Shell Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          # Install shfmt
+          GO111MODULE=on go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Run shellcheck
+        run: |
+          find hooks -name "*.sh" -type f -print0 | xargs -0 shellcheck -x
+
+      - name: Run shfmt check
+        run: |
+          find hooks -name "*.sh" -type f -print0 | xargs -0 shfmt -d -l -i 2 -ci -sr
+
+  pre-commit:
+    name: Pre-commit Hooks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  test-hooks:
+    name: Test Hooks
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: |
+          # Install bats for testing
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            sudo apt-get update
+            sudo apt-get install -y bats
+          else
+            brew install bats-core
+          fi
+
+      - name: Validate hook executability
+        run: |
+          # Check that all .sh files are executable
+          failed=0
+          while IFS= read -r file; do
+            if [[ ! -x "$file" ]]; then
+              echo "Error: $file is not executable"
+              failed=1
+            fi
+          done < <(find hooks -name "*.sh" -type f)
+
+          if [[ $failed -eq 1 ]]; then
+            echo "Some hook scripts are not executable. Run: chmod +x hooks/**/*.sh"
+            exit 1
+          fi
+
+      - name: Test hook syntax
+        run: |
+          # Basic syntax check for all shell scripts
+          failed=0
+          while IFS= read -r file; do
+            if ! bash -n "$file"; then
+              echo "Syntax error in: $file"
+              failed=1
+            fi
+          done < <(find hooks -name "*.sh" -type f)
+
+          exit $failed
+
+      - name: Run bats tests
+        run: |
+          # Make test files executable
+          chmod +x tests/run_tests.sh
+          chmod +x tests/**/*.bats 2>/dev/null || true
+
+          # Run the test suite
+          ./tests/run_tests.sh
+
+      - name: Check for required tools
+        run: |
+          # Verify hooks declare their dependencies
+          echo "Checking hook dependencies..."
+
+          # Look for common tools that should be checked
+          tools=("git" "docker" "nix" "go" "python" "node" "cargo")
+
+          for tool in "${tools[@]}"; do
+            echo "Hooks using $tool:"
+            grep -l "$tool" hooks/**/*.sh || true
+            echo ""
+          done
+
+  validate-nix:
+    name: Validate Nix Files
+    runs-on: ubuntu-latest
+    if: true  # Always run, even if no Nix files changed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Check Nix files
+        run: |
+          # Find and validate all .nix files
+          find . -name "*.nix" -type f | while read -r file; do
+            echo "Checking: $file"
+            nix-instantiate --parse "$file" > /dev/null
+          done
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint-shell, pre-commit, test-hooks, validate-nix]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          if [[ "${{ needs.lint-shell.result }}" != "success" || \
+                "${{ needs.pre-commit.result }}" != "success" || \
+                "${{ needs.test-hooks.result }}" != "success" || \
+                "${{ needs.validate-nix.result }}" != "success" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI checks passed!"

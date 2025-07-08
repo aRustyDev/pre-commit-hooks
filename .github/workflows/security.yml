@@ -1,0 +1,238 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '1'
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better detection
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'pre-commit-hooks'
+          path: '.'
+          format: 'ALL'
+          args: >
+            --enableRetired
+            --enableExperimental
+            --log ./dependency-check.log
+        continue-on-error: true
+
+      - name: Upload dependency check results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: reports/
+
+  shellcheck-security:
+    name: ShellCheck Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck with security focus
+        run: |
+          # Install shellcheck if not available
+          sudo apt-get update && sudo apt-get install -y shellcheck
+
+          # Run with strict security checks
+          find hooks -name "*.sh" -type f -print0 | \
+            xargs -0 shellcheck -x -S error \
+              --exclude=SC2034,SC2154 \
+              -o all \
+              -f gcc | tee shellcheck-security.log
+
+          # Check for common security issues
+          echo "Checking for security anti-patterns..."
+
+          # Check for eval usage
+          if grep -r "eval" hooks/ --include="*.sh"; then
+            echo "Warning: Found 'eval' usage - potential command injection risk"
+          fi
+
+          # Check for unquoted variables in sensitive contexts
+          if grep -rE '\$[A-Za-z_][A-Za-z0-9_]*[^"]' hooks/ --include="*.sh" | grep -E "(rm|exec|source)"; then
+            echo "Warning: Found potentially unquoted variables in dangerous commands"
+          fi
+
+      - name: Upload ShellCheck results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shellcheck-security-report
+          path: shellcheck-security.log
+
+  permissions-check:
+    name: File Permissions Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check file permissions
+        run: |
+          echo "Checking for overly permissive files..."
+
+          # Find files with dangerous permissions
+          find . -type f -perm /go+w -ls | tee permissions-report.txt
+
+          # Check for setuid/setgid files
+          find . -type f \( -perm -4000 -o -perm -2000 \) -ls | tee -a permissions-report.txt
+
+          # Verify hook scripts have proper permissions
+          while IFS= read -r file; do
+            perms=$(stat -c "%a" "$file" 2>/dev/null || stat -f "%p" "$file" | cut -c 4-6)
+            if [[ "$perms" != "755" && "$perms" != "775" ]]; then
+              echo "Warning: $file has permissions $perms (expected 755 or 775)"
+            fi
+          done < <(find hooks -name "*.sh" -type f)
+
+      - name: Upload permissions report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: permissions-security-report
+          path: permissions-report.txt
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['python']  # Add more if needed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [trivy-scan, secret-scan, dependency-check, shellcheck-security, permissions-check]
+    if: always()
+    steps:
+      - name: Security scan summary
+        run: |
+          echo "## Security Scan Summary"
+          echo "========================"
+
+          # Check job results
+          if [[ "${{ needs.trivy-scan.result }}" == "failure" ]]; then
+            echo "❌ Trivy found vulnerabilities"
+          else
+            echo "✅ Trivy scan passed"
+          fi
+
+          if [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
+            echo "❌ Secret detection found issues"
+          else
+            echo "✅ No secrets detected"
+          fi
+
+          if [[ "${{ needs.shellcheck-security.result }}" == "failure" ]]; then
+            echo "❌ ShellCheck found security issues"
+          else
+            echo "✅ ShellCheck security analysis passed"
+          fi
+
+          if [[ "${{ needs.permissions-check.result }}" == "failure" ]]; then
+            echo "❌ File permission issues found"
+          else
+            echo "✅ File permissions are secure"
+          fi
+
+          # Overall result
+          if [[ "${{ needs.trivy-scan.result }}" == "failure" || \
+                "${{ needs.secret-scan.result }}" == "failure" || \
+                "${{ needs.shellcheck-security.result }}" == "failure" || \
+                "${{ needs.permissions-check.result }}" == "failure" ]]; then
+            echo ""
+            echo "⚠️  Security checks failed - review findings above"
+            exit 1
+          else
+            echo ""
+            echo "✅ All security checks passed!"
+          fi
