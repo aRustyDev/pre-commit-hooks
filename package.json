@@ -1,0 +1,43 @@
+{
+  "name": "@arustydev/pre-commit-hooks",
+  "version": "0.1.0",
+  "description": "Collection of pre-commit hooks for various languages and tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aRustyDev/pre-commit-hooks.git"
+  },
+  "keywords": [
+    "pre-commit",
+    "hooks",
+    "linting",
+    "formatting",
+    "git",
+    "ci"
+  ],
+  "author": "aRustyDev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aRustyDev/pre-commit-hooks/issues"
+  },
+  "homepage": "https://github.com/aRustyDev/pre-commit-hooks#readme",
+  "files": [
+    "hooks/",
+    "tests/",
+    "docs/",
+    ".pre-commit-hooks.yaml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "./tests/run_tests.sh",
+    "version": "echo $npm_package_version > VERSION && git add VERSION"
+  },
+  "devDependencies": {
+    "conventional-changelog-cli": "^2.2.2",
+    "standard-version": "^9.5.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

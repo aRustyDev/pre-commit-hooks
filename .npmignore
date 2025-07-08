@@ -1,0 +1,42 @@
+# Development files
+.github/
+.todo/
+scripts/
+tests/
+docs/RELEASE_AUTOMATION.md
+
+# Configuration files
+.pre-commit-config.yaml
+.versionrc.json
+.gitignore
+.npmignore
+
+# Python files
+setup.py
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# CI/CD files
+CICD_ASSESSMENT.md
+IMPLEMENTATION_SUMMARY.md
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+*.lcov
+.coverage
+
+# Temporary files
+*.tmp
+*.bak
+*~
