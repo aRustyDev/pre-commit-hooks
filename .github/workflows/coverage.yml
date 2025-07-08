@@ -1,0 +1,140 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats kcov
+
+          # Install bashcov for additional coverage
+          sudo gem install bashcov
+
+      - name: Create coverage directory
+        run: mkdir -p coverage
+
+      - name: Run tests with kcov
+        run: |
+          # Run each test file with kcov
+          for test_file in tests/**/*.bats; do
+            if [[ -f "$test_file" ]]; then
+              test_name=$(basename "$test_file" .bats)
+              echo "Running coverage for: $test_name"
+
+              # Skip if no hook files exist yet
+              if ! ls hooks/**/*.sh >/dev/null 2>&1; then
+                echo "No hook files found, skipping coverage"
+                continue
+              fi
+
+              kcov --exclude-pattern=/usr,/tmp coverage/$test_name \
+                bats "$test_file" || true
+            fi
+          done
+
+      - name: Merge coverage reports
+        run: |
+          if ls coverage/*/cobertura.xml >/dev/null 2>&1; then
+            kcov --merge coverage/merged coverage/*
+          else
+            echo "No coverage reports found"
+            mkdir -p coverage/merged
+            echo '<?xml version="1.0"?><coverage version="1"><packages/></coverage>' > coverage/merged/cobertura.xml
+          fi
+
+      - name: Generate coverage report
+        run: |
+          if [[ -f coverage/merged/index.html ]]; then
+            echo "## Coverage Report Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Extract coverage percentage
+            coverage_percent=$(grep -oP 'Overall coverage rate:.*?(\d+\.\d+)%' coverage/merged/index.html | grep -oP '\d+\.\d+' || echo "0.0")
+            echo "**Overall Coverage**: ${coverage_percent}%" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Coverage badge color
+            if (( $(echo "$coverage_percent >= 80" | bc -l) )); then
+              badge_color="brightgreen"
+            elif (( $(echo "$coverage_percent >= 60" | bc -l) )); then
+              badge_color="yellow"
+            else
+              badge_color="red"
+            fi
+
+            echo "![Coverage](https://img.shields.io/badge/coverage-${coverage_percent}%25-${badge_color})" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/merged/
+
+      - name: Comment PR with coverage
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageText = 'Coverage report not available';
+
+            try {
+              // Read coverage summary if available
+              const coverageFile = 'coverage/merged/index.html';
+              if (fs.existsSync(coverageFile)) {
+                const content = fs.readFileSync(coverageFile, 'utf8');
+                const match = content.match(/Overall coverage rate:.*?(\d+\.\d+)%/);
+                if (match) {
+                  const coverage = match[1];
+                  coverageText = `## Test Coverage Report\n\n**Overall Coverage**: ${coverage}%\n\n`;
+
+                  if (parseFloat(coverage) < 80) {
+                    coverageText += '⚠️ Coverage is below 80% target\n';
+                  } else {
+                    coverageText += '✅ Coverage meets target\n';
+                  }
+                }
+              }
+            } catch (e) {
+              console.error('Error reading coverage:', e);
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverageText
+            });
+
+      - name: Coverage check
+        run: |
+          # Fail if coverage is below threshold
+          if [[ -f coverage/merged/index.html ]]; then
+            coverage_percent=$(grep -oP 'Overall coverage rate:.*?(\d+\.\d+)%' coverage/merged/index.html | grep -oP '\d+\.\d+' || echo "0")
+
+            echo "Current coverage: ${coverage_percent}%"
+
+            # For now, just warn if below 80%
+            if (( $(echo "$coverage_percent < 80" | bc -l) )); then
+              echo "::warning::Coverage ${coverage_percent}% is below 80% target"
+            fi
+          fi
