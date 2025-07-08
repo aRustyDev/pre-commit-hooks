@@ -56,7 +56,9 @@ jobs:
         run: pip install pre-commit
 
       - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: |
+          # Skip no-commit-to-branch hook in CI
+          SKIP=no-commit-to-branch pre-commit run --all-files --show-diff-on-failure
 
   test-hooks:
     name: Test Hooks
