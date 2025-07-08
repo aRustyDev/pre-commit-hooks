@@ -3,6 +3,55 @@
   description: This hook copies all files at /etc/nixos to $GIT_DIR/nixos/backup.
   entry: hooks/backup-nixos.sh
   language: script
+- id: nixos-build
+  name: Building Nix Packages
+  description: This runs nix-build on all files passed to it.
+  entry: hooks/nix/nix-build.sh
+  language: script
+  files: packages\.nix$
+- id: nix-flake-check
+  name: Check Nix flakes
+  description: Validates Nix flakes using 'nix flake check'
+  entry: hooks/nix/nix-flake-check.sh
+  language: script
+  files: flake\.nix$
+  pass_filenames: true
+- id: nix-build-check
+  name: Check Nix builds
+  description: Tests that Nix expressions build successfully
+  entry: hooks/nix/nix-build-check.sh
+  language: script
+  files: (default|shell)\.nix$
+  pass_filenames: true
+- id: nix-darwin-check
+  name: Check nix-darwin configuration
+  description: Validates nix-darwin configurations
+  entry: hooks/nix/nix-darwin-check.sh
+  language: script
+  files: darwin.*\.nix$
+  pass_filenames: true
+- id: nix-home-manager-check
+  name: Check home-manager configuration
+  description: Validates home-manager configurations
+  entry: hooks/nix/nix-home-manager-check.sh
+  language: script
+  files: (home|users/.*|home-manager/.*)\.nix$
+  pass_filenames: true
+- id: nix-fmt
+  name: Format Nix files
+  description: Formats Nix files using nixpkgs-fmt or alejandra
+  entry: hooks/nix/nix-fmt.sh
+  language: script
+  files: \.nix$
+  pass_filenames: true
+  args: [--formatter=nixpkgs-fmt]
+- id: nix-lint
+  name: Lint Nix files
+  description: Lints Nix files using statix and optionally deadnix
+  entry: hooks/nix/nix-lint.sh
+  language: script
+  files: \.nix$
+  pass_filenames: true
 - id: op-ggshield-img
   name: 1PW-GGShield
   description: This hook downloads and runs a docker container that calls `op run -- ggshield secret scan pre-commit`.
