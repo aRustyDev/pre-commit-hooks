@@ -6,4 +6,4 @@ if [ -f ".csslintrc" ]; then
 fi
 
 npm install -g csslint
-csslint $1
+csslint "$1"

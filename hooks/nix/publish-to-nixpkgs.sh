@@ -1,5 +1,6 @@
 #!/usr/bin/env nix-shell
 #!nix-shell default.nix -A expEnv -i bash
+# shellcheck shell=bash
 
 # TODO: pull the commit-msg from upstream
 # TODO: commitlint the commit-msg

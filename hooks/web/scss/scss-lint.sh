@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Package.json needs to be here or npm needs to run install
-if ![ -f "package.json" ]; then
-  npm install --save-dev fixmyjs
+if ! [ -f "package.json" ]; then
+  gem install scss_lint
 fi
 
-# Run eslint
-scss-lint $1
+# Run scss-lint
+scss-lint "$1"

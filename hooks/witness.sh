@@ -107,17 +107,17 @@ EOF
 fi
 
 # 2. Check for witness binary
-if [ ! command -v witness ] > /dev/null 2>&1; then
+if ! command -v witness > /dev/null 2>&1; then
   echo "witness binary not found"
   echo "Downloading witness binary"
   go install/get github.com/in-toto/witness/cmd/$ARCH/witness@latest
 fi
-if [ ! command -v yq ] > /dev/null 2>&1; then
+if ! command -v yq > /dev/null 2>&1; then
   echo "yq binary not found"
   echo "Downloading yq binary"
   go install github.com/mikefarah/yq/v4@latest
 fi
-if [ ! command -v jq ] > /dev/null 2>&1; then
+if ! command -v jq > /dev/null 2>&1; then
   echo "jq binary not found"
   echo "Download jq binary as per your OS"
   echo "- https://jqlang.github.io/jq/"
@@ -148,29 +148,29 @@ while getopts ":run:runArgs:step:" opt; do
   esac
 done
 
-if [ ! -f $(yq eval '.run.signer-file-key-path' .witness.yaml) ]; then
+if [ ! -f "$(yq eval '.run.signer-file-key-path' .witness.yaml)" ]; then
   echo "Private Key file in '.witness.yaml' not found"
   exit 1
 fi
-if [ ! -f $(yq eval '.verify.publickey' .witness.yaml) ]; then
+if [ ! -f "$(yq eval '.verify.publickey' .witness.yaml)" ]; then
   echo "Public Key file in '.witness.yaml' not found"
   exit 1
 fi
 
 # 4. Run witness
 for i in $(yq eval '.verify.attestations[]' .witness.yaml); do
-  if [ ! -f $i ]; then
-    echo "Attestation file ($1) specified in '.witness.yaml' not found"
+  if [ ! -f "$i" ]; then
+    echo "Attestation file ($i) specified in '.witness.yaml' not found"
     exit 1
   fi
-  witness run --step build -o $i -a slsa --attestor-slsa-export -- $witness_run $witness_run_args .
-  cat $i | jq -r .payload | base64 -d | jq
+  witness run --step build -o "$i" -a slsa --attestor-slsa-export -- $witness_run $witness_run_args .
+  cat "$i" | jq -r .payload | base64 -d | jq
 done
 
 # 5.View Attestation data in the signed DSSE envelope
 
 # 6. check for/create policy file
-if [ ! -f $(yq eval '.verify.policy' .witness.yaml) ]; then
+if [ ! -f "$(yq eval '.verify.policy' .witness.yaml)" ]; then
   echo "Policy file in '.witness.yaml' not found"
   exit 1
 fi

@@ -3,9 +3,9 @@
 # TODO: Pull version from tags
 # TODO: Handle commitizen-branch hook
 # Package.json needs to be here or npm needs to run install
-if ![ -f ".cz.toml" || -f "cz.toml" ]; then
+if ! [ -f ".cz.toml" ] && ! [ -f "cz.toml" ]; then
   pip install -U commitizen
-  cat .cz.toml << EOF
+  cat > .cz.toml << EOF
 [tool.commitizen]
 version = "0.1.0"
 update_changelog_on_bump = true
@@ -13,5 +13,5 @@ EOF
   cz init
 fi
 
-# Run eslint
-cz check $1
+# Run commitizen
+cz check "$1"
