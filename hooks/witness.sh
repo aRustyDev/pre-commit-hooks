@@ -110,7 +110,7 @@ fi
 if ! command -v witness > /dev/null 2>&1; then
   echo "witness binary not found"
   echo "Downloading witness binary"
-  go install/get github.com/in-toto/witness/cmd/$ARCH/witness@latest
+  go install/get github.com/in-toto/witness/cmd/${ARCH:-}/witness@latest
 fi
 if ! command -v yq > /dev/null 2>&1; then
   echo "yq binary not found"
@@ -126,12 +126,12 @@ fi
 
 # 3. Check Key Pair
 
-while getopts ":run:runArgs:step:" opt; do
+while getopts ":r:a:s:" opt; do
   case $opt in
-    run)
+    r)
       witness_run="$OPTARG"
       ;;
-    runArgs)
+    a)
       witness_run_args="$OPTARG"
       ;;
     \?)
