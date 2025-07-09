@@ -30,7 +30,7 @@ pkgs.mkShell {
   buildInputs = [ pkgs.hello ];
 }' > \"\$1\""
 
-  run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh"
+  run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh" default.nix
   [ "$status" -eq 0 ]
 
   # Check file was formatted
@@ -41,7 +41,7 @@ pkgs.mkShell {
   # No nix files in directory
   mock_command "nixpkgs-fmt" "exit 0"
 
-  run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh"
+  run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh" missing.nix
   [ "$status" -eq 0 ]
 }
 
@@ -50,6 +50,6 @@ pkgs.mkShell {
 
   mock_command "nixpkgs-fmt" "echo 'Error: Invalid syntax' >&2; exit 1"
 
-  run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh"
+  run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh" invalid.nix
   [ "$status" -eq 1 ]
 }

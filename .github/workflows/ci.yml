@@ -57,6 +57,12 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
 
+      - name: Install shfmt for pre-commit
+        run: |
+          wget -O /tmp/shfmt https://github.com/mvdan/sh/releases/download/v3.7.0/shfmt_v3.7.0_linux_amd64
+          chmod +x /tmp/shfmt
+          sudo mv /tmp/shfmt /usr/local/bin/shfmt
+
       - name: Run pre-commit
         run: |
           # Skip no-commit-to-branch hook in CI
