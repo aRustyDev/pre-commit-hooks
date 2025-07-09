@@ -6,7 +6,7 @@ if ! command -v pluralith &> /dev/null; then
   echo "Please install pluralith from"
   exit 1
 fi
-if [ ! command -v yq ] > /dev/null 2>&1; then
+if ! command -v yq > /dev/null 2>&1; then
   echo "yq binary not found"
   echo "Downloading yq binary"
   go install github.com/mikefarah/yq/v4@latest

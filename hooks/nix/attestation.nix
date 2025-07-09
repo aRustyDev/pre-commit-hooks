@@ -11,7 +11,7 @@ let
   packages = rec {
 
     # The derivation for chord
-    kubectx = stdenv.mkDerivation rec {
+    chord = stdenv.mkDerivation rec {
       pname = "chord";
       version = "0.0.in-tuto";
       src = fetchgit {
@@ -31,7 +31,7 @@ let
 
     };
 
-    kubectx-docker = dockerTools.buildImage {
+    chord-docker = dockerTools.buildImage {
       name = "chord-docker";
       tag = "tuto-nix";
       contents = [ chord ];
