@@ -23,7 +23,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bats
-          
+
           # Install kcov dependencies
           sudo apt-get install -y \
             cmake \
@@ -32,7 +32,7 @@ jobs:
             zlib1g-dev \
             libdw-dev \
             libiberty-dev
-          
+
           # Build and install kcov from source
           cd /tmp
           wget https://github.com/SimonKagstrom/kcov/archive/v42.tar.gz
@@ -42,7 +42,7 @@ jobs:
           cmake ..
           make -j$(nproc)
           sudo make install
-          
+
           # Verify kcov installation
           kcov --version
 
