@@ -22,9 +22,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
+
           # Install shfmt
-          GO111MODULE=on go install mvdan.cc/sh/v3/cmd/shfmt@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
+          wget -O /tmp/shfmt https://github.com/mvdan/sh/releases/download/v3.7.0/shfmt_v3.7.0_linux_amd64
+          chmod +x /tmp/shfmt
+          sudo mv /tmp/shfmt /usr/local/bin/shfmt
 
       - name: Run shellcheck
         run: |

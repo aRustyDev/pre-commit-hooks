@@ -25,12 +25,10 @@ buildInputs=[pkgs.hello];
 EOF
 
   # Mock nixpkgs-fmt
-  mock_command "nixpkgs-fmt" "cat > default.nix << 'FORMATTED'
-{ pkgs }:
+  mock_command "nixpkgs-fmt" "echo '{ pkgs }:
 pkgs.mkShell {
   buildInputs = [ pkgs.hello ];
-}
-FORMATTED"
+}' > \"\$1\""
 
   run "$ORIGINAL_DIR/hooks/nix/nix-fmt.sh"
   [ "$status" -eq 0 ]

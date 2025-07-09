@@ -7,7 +7,7 @@
 
 nix-build "$@"
 git clone https://github.com/NixOS/nixpkgs
-cd nixpkgs
+cd nixpkgs || exit
 mkdir -p pkgs/by-name/so/some-package
 emacs pkgs/by-name/so/some-package/package.nix
 git add pkgs/by-name/so/some-package/package.nix

@@ -110,7 +110,7 @@ fi
 if ! command -v witness > /dev/null 2>&1; then
   echo "witness binary not found"
   echo "Downloading witness binary"
-  go install/get github.com/in-toto/witness/cmd/${ARCH:-}/witness@latest
+  go install/get "github.com/in-toto/witness/cmd/${ARCH:-}/witness@latest"
 fi
 if ! command -v yq > /dev/null 2>&1; then
   echo "yq binary not found"
@@ -133,6 +133,10 @@ while getopts ":r:a:s:" opt; do
       ;;
     a)
       witness_run_args="$OPTARG"
+      ;;
+    s)
+      # Step option reserved for future use
+      :
       ;;
     \?)
       echo "Invalid option -$OPTARG" >&2
@@ -163,8 +167,8 @@ for i in $(yq eval '.verify.attestations[]' .witness.yaml); do
     echo "Attestation file ($i) specified in '.witness.yaml' not found"
     exit 1
   fi
-  witness run --step build -o "$i" -a slsa --attestor-slsa-export -- $witness_run $witness_run_args .
-  cat "$i" | jq -r .payload | base64 -d | jq
+  witness run --step build -o "$i" -a slsa --attestor-slsa-export -- "$witness_run" "$witness_run_args" .
+  jq -r .payload < "$i" | base64 -d | jq
 done
 
 # 5.View Attestation data in the signed DSSE envelope
@@ -213,7 +217,7 @@ fi
 
 # 7. Replace variables in the policy
 id=$(sha256sum testpub.pem | awk '{print $1}') && sed -i "s/{{PUBLIC_KEY_ID}}/$id/g" policy.json
-pubb64=$(cat testpub.pem | base64 -w 0) && sed -i "s/{{B64_PUBLIC_KEY}}/$pubb64/g" policy.json
+pubb64=$(base64 -w 0 < testpub.pem) && sed -i "s/{{B64_PUBLIC_KEY}}/$pubb64/g" policy.json
 
 # 8. Sign the policy file
 witness sign -f policy.json --signer-file-key-path testkey.pem --outfile policy-signed.json
