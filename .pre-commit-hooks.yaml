@@ -314,11 +314,9 @@
   pass_filenames: false
 - id: validate-frontmatter
   name: Validate Markdown Frontmatter
-  description: Run `cargo bench` to Compile and execute benchmarks.
-  entry: python3 ./scripts/validate-frontmatter.py
+  description: Validate frontmatter UUIDs and cross-references in markdown files
+  entry: python3 .ai/scripts/validate-frontmatter.py
   language: system
-  args: ["--config", ".frontmatter-config.json", "--cache", "./uuid-cache.json"]
   files: \.md$
-  types: [text]
   exclude: ^(README\.md|CHANGELOG\.md|\.github/.*\.md|\.ai/templates/.*|\.ai/artifacts/.*|docs/prompts/.*|docs/project-knowledge/user/.*)$
   pass_filenames: true
