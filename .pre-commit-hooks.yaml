@@ -81,43 +81,43 @@
   minimum_pre_commit_version: 0.7.0
 - id: eslint
   name: "UNTESTED: eslint"
-  description: ''
+  description: ""
   entry: hooks/web/js/eslint.sh
   language: script
-  'types': [javascript]
+  "types": [javascript]
   args: []
   require_serial: false
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
 - id: fixmyjs
   name: "UNTESTED: fixmyjs"
-  description: ''
+  description: ""
   entry: hooks/web/js/fixmyjs.sh
   language: script
-  'types': [javascript]
+  "types": [javascript]
   args: []
   require_serial: false
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
 - id: jshint
   name: "UNTESTED: jshint"
-  description: ''
+  description: ""
   entry: hooks/web/js/jshint.sh
   language: script
   # language: node
-  'types': [javascript]
+  "types": [javascript]
   args: []
   require_serial: false
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
 - id: scss-lint
   name: scss_lint
-  description: ''
+  description: ""
   entry: hooks/web/scss/scss-lint.sh
   language: script
   # language: ruby
-  'types': [scss]
+  "types": [scss]
   args: []
   require_serial: false
   additional_dependencies: []
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
 - id: yamlfmt
   name: "UNTESTED: yamlfmt"
   description: This hook uses github.com/google/yamlfmt to format yaml files. Requires golang >1.18 to be installed.
@@ -127,7 +127,7 @@
   args: []
   require_serial: false
   additional_dependencies: []
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
 - id: commitlint
   name: "UNTESTED: commitlint"
   description: Commitlint hook
@@ -135,7 +135,7 @@
   language: script
   require_serial: false
   additional_dependencies: []
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
   pass_filenames: false
   always_run: true
 - id: gitlint
@@ -213,7 +213,7 @@
   # args: []
   require_serial: false
   additional_dependencies: []
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
   pass_filenames: false
 # - id: tfupdate
 #   name: "UNTESTED: tfupdate"
@@ -236,7 +236,7 @@
   always_run: true
   require_serial: false
   # additional_dependencies: []
-  minimum_pre_commit_version: '0'
+  minimum_pre_commit_version: "0"
 - id: dead-links
   name: "Check Markdown Links"
   description: Checks markdown files for dead relative links.
@@ -312,3 +312,13 @@
   args: []
   types: [rust]
   pass_filenames: false
+- id: validate-frontmatter
+  name: Validate Markdown Frontmatter
+  description: Run `cargo bench` to Compile and execute benchmarks.
+  entry: python3 ./scripts/validate-frontmatter.py
+  language: system
+  args: ["--config", ".frontmatter-config.json", "--cache", "./uuid-cache.json"]
+  files: \.md$
+  types: [text]
+  exclude: ^(README\.md|CHANGELOG\.md|\.github/.*\.md|\.ai/templates/.*|\.ai/artifacts/.*|docs/prompts/.*|docs/project-knowledge/user/.*)$
+  pass_filenames: true
