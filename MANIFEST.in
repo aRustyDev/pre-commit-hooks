@@ -1,0 +1,6 @@
+include VERSION
+include README.md
+include LICENSE
+include .pre-commit-hooks.yaml
+recursive-include pre_commit_hooks *.py
+recursive-include hooks *.sh *.nix

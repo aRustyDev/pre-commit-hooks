@@ -34,7 +34,13 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'pre-commit>=2.0.0',
+        'pyyaml>=5.0',
     ],
+    entry_points={
+        'console_scripts': [
+            'validate-frontmatter=pre_commit_hooks.validate_frontmatter:main',
+        ],
+    },
     extras_require={
         'dev': [
             'pytest>=6.0',

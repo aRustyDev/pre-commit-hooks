@@ -21,8 +21,12 @@ classifiers = [
 ]
 dependencies = [
     "pre-commit>=2.0.0",
+    "pyyaml>=5.0",
 ]
 dynamic = ["version"]
+
+[project.scripts]
+validate-frontmatter = "pre_commit_hooks.validate_frontmatter:main"
 
 [project.urls]
 Homepage = "https://github.com/aRustyDev/pre-commit-hooks"
@@ -39,7 +43,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = []
+packages = ["pre_commit_hooks"]
 include-package-data = true
 
 [tool.setuptools.package-data]
