@@ -315,7 +315,7 @@
 - id: validate-frontmatter
   name: Validate Markdown Frontmatter
   description: Validate frontmatter UUIDs and cross-references in markdown files
-  entry: hooks/python/validate-frontmatter/validate_frontmatter
+  entry: hooks/python/validate-frontmatter/validate_frontmatter.py
   language: python
   files: \.md$
   exclude: ^(README\.md|CHANGELOG\.md|\.github/.*\.md|\.ai/templates/.*|\.ai/artifacts/.*|docs/prompts/.*|docs/project-knowledge/user/.*)$
