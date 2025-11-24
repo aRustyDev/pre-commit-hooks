@@ -1,0 +1,9 @@
+[package]
+name = "foo-hook"
+version = "0.1.0"
+edition = "2024"
+authors = ["Adam Smith <developer@gh.arusty.dev>"]
+description = "Sort pre-commit files"
+keywords = ["yaml", "serde", "serialization", "ci", "pre-commit"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/nim65s/pre-commit-sort"
